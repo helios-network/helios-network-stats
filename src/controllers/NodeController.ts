@@ -170,12 +170,10 @@ export class NodeController {
         const propMs = Number.isFinite(ts) ? Math.max(0, Date.now() - ts * 1000) : null;
         const txCount = Array.isArray(b.transactions) ? b.transactions.length : null;
         const gasUsed = parseInt(b.gasUsed, 16);
-        const baseFeeWei = b.baseFeePerGas ? parseInt(b.baseFeePerGas, 16) : NaN;
-        const spendEth = Number.isFinite(baseFeeWei) && Number.isFinite(gasUsed) ? (baseFeeWei * gasUsed) / 1e18 : null;
         bt.push(dtMs);
         bp.push(propMs);
         tx.push(Number.isFinite(txCount as any) ? (txCount as any) : null);
-        gs.push(spendEth);
+        gs.push(Number.isFinite(gasUsed) ? gasUsed : null);
       }
 
       return res.json({ ok: true, labels, series: { bt, bp, tx, gs }, best });

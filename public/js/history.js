@@ -88,7 +88,7 @@ export async function loadHistory(charts) {
     if (charts && charts.chBT) { charts.chBT.data.labels = state.labels; charts.chBT.data.datasets[0].data = state.series.bt; charts.chBT.update(); if (el.lBT) { const v = state.series.bt[state.series.bt.length-1]; el.lBT.textContent = v!=null ? fmtDur(v) : '—'; } }
     if (charts && charts.chBP) { charts.chBP.data.labels = state.labels; charts.chBP.data.datasets[0].data = state.series.bp; charts.chBP.update(); if (el.lBP) { const v = state.series.bp[state.series.bp.length-1]; el.lBP.textContent = v!=null ? fmtDur(v) : '—'; } }
     if (charts && charts.chTX) { charts.chTX.data.labels = state.labels; charts.chTX.data.datasets[0].data = state.series.tx; charts.chTX.update(); if (el.lTX) { const v = state.series.tx[state.series.tx.length-1]; el.lTX.textContent = v!=null ? fmtNum(v) : '—'; } }
-    if (charts && charts.chGS) { charts.chGS.data.labels = state.labels; charts.chGS.data.datasets[0].data = state.series.gs; charts.chGS.update(); if (el.lGS) { const v = state.series.gs[state.series.gs.length-1]; el.lGS.textContent = v!=null ? fmtEth(v) : '—'; } }
+    if (charts && charts.chGS) { charts.chGS.data.labels = state.labels; charts.chGS.data.datasets[0].data = state.series.gs; charts.chGS.update(); if (el.lGS) { const v = state.series.gs[state.series.gs.length-1]; el.lGS.textContent = v!=null ? fmtNum(v) : '—'; } }
 
     state.historyState.loaded = true;
     setHistoryLoading(false);
@@ -109,4 +109,3 @@ export function maybeLoadHistory(charts) {
   }
   loadHistory(charts);
 }
-
