@@ -27,6 +27,7 @@ export function makeChart(canvas, formatLabel, opts = {}) {
   const colorRGB = hexToRgb(colorHex);
   const cornerRadius = Number.isFinite(opts.radius) ? opts.radius : 3;
   const fmt = typeof formatLabel === 'function' ? formatLabel : (v) => (typeof v === 'number' ? String(v) : '—');
+  const unitSuffix = (opts && typeof opts.unit === 'string') ? opts.unit : '';
 
   // Lazily sized canvas
   function resizeCtx() {
@@ -161,7 +162,8 @@ export function makeChart(canvas, formatLabel, opts = {}) {
     if (idx !== stateLocal.hover) { stateLocal.hover = idx; draw(); }
     const v = stateLocal.data[idx];
     const label = stateLocal.labels[idx] || '';
-    const vStr = fmt(v);
+    let vStr = fmt(v);
+    if (typeof v === 'number' && Number.isFinite(v) && unitSuffix) vStr = `${vStr} ${unitSuffix}`;
     showTip(`<span class="k">${label}</span><strong>${vStr}</strong>`, ev.clientX, ev.clientY);
   }
 
@@ -188,10 +190,10 @@ export function makeChart(canvas, formatLabel, opts = {}) {
 }
 
 export function initCharts() {
-  const chBT = makeChart(el.cBT, (v) => fmtDur(v), { color: '#2E5BFF', radius: 3 });
-  const chBP = makeChart(el.cBP, (v) => fmtNum(v), { color: '#64748B', radius: 3 });
-  const chTX = makeChart(el.cTX, (v) => fmtNum(v), { color: '#16A34A', radius: 3 });
-  const chGS = makeChart(el.cGS, (v) => fmtNum(v), { color: '#EF4444', radius: 3 });
+  const chBT = makeChart(el.cBT, (v) => fmtDur(v), { color: '#2E5BFF', radius: 3, unit: '' });
+  const chBP = makeChart(el.cBP, (v) => fmtNum(v), { color: '#64748B', radius: 3, unit: 'TXs' });
+  const chTX = makeChart(el.cTX, (v) => fmtNum(v), { color: '#16A34A', radius: 3, unit: 'TXs' });
+  const chGS = makeChart(el.cGS, (v) => fmtNum(v), { color: '#EF4444', radius: 3, unit: 'gas' });
   return { chBT, chBP, chTX, chGS };
 }
 
