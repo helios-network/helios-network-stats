@@ -15,6 +15,7 @@ export interface NodeSnapshot {
   gasLimit?: number;
   gasUsed?: number;
   blockTimeMs?: number;
+  blockTimeAvgMs?: number;
   blockPropagationMs?: number;
   blockTxs?: number;
   lastUpdated?: number;

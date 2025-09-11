@@ -135,6 +135,8 @@ export class NodeEntry {
           this.snapshot.blockTxs = txCount;
           const gasUsed = parseInt(latestBlockObj.gasUsed, 16);
           this.snapshot.gasUsed = Number.isFinite(gasUsed) ? gasUsed : this.snapshot.gasUsed;
+          const gasLimit = parseInt(latestBlockObj.gasLimit, 16);
+          this.snapshot.gasLimit = Number.isFinite(gasLimit) ? gasLimit : this.snapshot.gasLimit;
           if (tsSec) {
             this.snapshot.blockPropagationMs = Date.now() - tsSec * 1000;
             
@@ -145,6 +147,10 @@ export class NodeEntry {
               if (this.timesWindow.length > 10) this.timesWindow.shift();
             }
             this.lastBlockTimestampSec = tsSec;
+            if (this.timesWindow.length) {
+              const sum = this.timesWindow.reduce((a, b) => a + b, 0);
+              this.snapshot.blockTimeAvgMs = sum / this.timesWindow.length;
+            }
           }
         }
       }
