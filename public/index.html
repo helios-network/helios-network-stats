@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Helios Network</title>
+    <meta name="theme-color" content="#3B82F6" />
+    <meta name="description" content="Modern Ethereum network monitoring dashboard" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="inner">
+        <div class="brand">
+          <img class="logo" src="/logo.png" width="24" height="24" alt="Logo Helios" />
+          <h1>Helios Network</h1>
+        </div>
+        <div class="status">
+          <span id="conn" class="badge">Connecting…</span>
+          <button id="theme-toggle" class="btn btn-ghost" type="button" title="Toggle theme">
+            <i class="fas fa-sun" id="theme-icon"></i>
+          </button>
+          <button id="toggle-dev" class="btn btn-outline" type="button">Show tools</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="panel panel--manage hidden" id="panel-manage">
+        <h2>Manage Nodes</h2>
+        <form id="sub-form" class="sub-form">
+          <div class="row">
+            <label>
+              <span>Name</span>
+              <input id="f-name" placeholder="e.g. paris-01" />
+            </label>
+            <label>
+              <span>Host (or IP)</span>
+              <input id="f-host" placeholder="e.g. 127.0.0.1" />
+            </label>
+            <label>
+              <span>WebSocket URL (optional)</span>
+              <input id="f-wsurl" placeholder="e.g. ws://host:8546" />
+            </label>
+          </div>
+          <div class="row">
+            <label>
+              <span>RPC Port</span>
+              <input id="f-rpc" type="number" min="1" max="65535" value="8545" />
+            </label>
+            <label>
+              <span>WS RPC Port</span>
+              <input id="f-ws" type="number" min="1" max="65535" value="8546" />
+            </label>
+            <div class="actions">
+              <button class="btn" type="submit">Subscribe</button>
+              <button class="btn btn-outline" id="btn-unsub" type="button">Unsubscribe</button>
+              <div id="sub-msg" class="sub-msg"></div>
+            </div>
+          </div>
+        </form>
+        <p class="hint">Provide either host + ports or the full WS URL.</p>
+      </section>
+
+      <section class="panel panel--stats">
+        <div class="panel-title">
+          <h2>Network</h2>
+        </div>
+        <div class="stats" id="net-stats">
+          <div class="stat-holder big-info">
+            <div class="icon-full-width" aria-hidden="true">
+              <i class="fa-solid fa-cube" aria-hidden="true"></i>
+            </div>
+            <div class="big-details-holder">
+              <span class="small-title">Best block</span>
+              <span class="big-details" id="stat-best-block">—</span>
+            </div>
+          </div>
+          <div class="stat-holder big-info">
+            <div class="icon-full-width" aria-hidden="true">
+              <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+            </div>
+            <div class="big-details-holder">
+              <span class="small-title">Avg block time</span>
+              <span class="big-details" id="stat-avg-block-time">—</span>
+            </div>
+          </div>
+          <div class="stat-holder big-info">
+            <div class="icon-full-width" aria-hidden="true">
+              <i class="fa-solid fa-gas-pump" aria-hidden="true"></i>
+            </div>
+            <div class="big-details-holder">
+              <span class="small-title">Gas price</span>
+              <span class="big-details" id="stat-gas-price">—</span>
+            </div>
+          </div>
+          <div class="stat-holder big-info">
+            <div class="icon-full-width" aria-hidden="true">
+              <i class="fa-solid fa-signal" aria-hidden="true"></i>
+            </div>
+            <div class="big-details-holder">
+              <span class="small-title">Gas limit</span>
+              <span class="big-details" id="stat-gas-limit">—</span>
+            </div>
+          </div>
+          <div class="stat-holder big-info">
+            <div class="icon-full-width" aria-hidden="true">
+              <i class="fa-solid fa-network-wired" aria-hidden="true"></i>
+            </div>
+            <div class="big-details-holder">
+              <span class="small-title">Active nodes</span>
+              <span class="big-details" id="stat-nodes">—</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel--charts">
+        <div class="panel-title">
+          <h2>Charts</h2>
+        </div>
+        <div class="charts">
+          <div class="chart">
+            <div class="chart-head"><span>Block time</span><span id="chart-bt-label" class="chip">—</span></div>
+            <div class="chart-container">
+              <canvas id="chart-bt"></canvas>
+            </div>
+          </div>
+          <div class="chart">
+            <div class="chart-head"><span>Block propagation</span><span id="chart-bp-label" class="chip">—</span></div>
+            <div class="chart-container">
+              <canvas id="chart-bp"></canvas>
+            </div>
+          </div>
+          <div class="chart">
+            <div class="chart-head"><span>Transactions</span><span id="chart-tx-label" class="chip">—</span></div>
+            <div class="chart-container">
+              <canvas id="chart-tx"></canvas>
+            </div>
+          </div>
+          <div class="chart">
+            <div class="chart-head"><span>Gas spending</span><span id="chart-gs-label" class="chip">—</span></div>
+            <div class="chart-container">
+              <canvas id="chart-gs"></canvas>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+      <section class="panel panel--nodes">
+        <div class="panel-title">
+          <h2>Nodes</h2>
+        </div>
+        <div id="nodes" class="node-list"></div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="inner">
+        <small>© Helios Chain Labs</small>
+      </div>
+    </footer>
+    <script type="module" src="/js/main.js"></script>
+  </body>
+  </html>

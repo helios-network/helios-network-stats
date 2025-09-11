@@ -1,0 +1,16 @@
+{
+  "nodes": [
+    {
+      "name": "helios-unity",
+      "host": "91.134.85.215",
+      "rpcPort": 8545,
+      "wsRpcPort": 8546
+    },
+    {
+      "name": "helios-peer-PIBod",
+      "host": "91.99.37.116",
+      "rpcPort": 8545,
+      "wsRpcPort": 8546
+    }
+  ]
+}
