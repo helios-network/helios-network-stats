@@ -208,13 +208,29 @@ export function maybePushBlockSample(charts, bestBlock) {
   state.lastBestBlock = bestBlock;
 
   const vals = Object.values(state.nodes);
-  const atBest = vals.filter(n => n && typeof n.latestBlock === 'number' && n.latestBlock === bestBlock);
-  const sampleFrom = atBest.length ? atBest : vals; // fallback if no node at best yet
+  let source = undefined;
+  let bestUpdated = -Infinity;
+  for (const n of vals) {
+    if (!n || typeof n.latestBlock !== 'number') continue;
+    if (n.latestBlock !== bestBlock) continue;
+    const lu = typeof n.lastUpdated === 'number' ? n.lastUpdated : -Infinity;
+    if (!source || lu > bestUpdated) { source = n; bestUpdated = lu; }
+  }
+  if (!source) {
+    let best = -Infinity; bestUpdated = -Infinity;
+    for (const n of vals) {
+      if (!n || typeof n.latestBlock !== 'number') continue;
+      const lu = typeof n.lastUpdated === 'number' ? n.lastUpdated : -Infinity;
+      if (n.latestBlock > best || (n.latestBlock === best && lu > bestUpdated)) {
+        source = n; best = n.latestBlock; bestUpdated = lu;
+      }
+    }
+  }
 
-  const bt = median(sampleFrom.map(n => n.blockTimeMs ?? n.blockTimeAvgMs));
-  const bp = median(sampleFrom.map(n => n.blockPropagationMs));
-  const tx = median(sampleFrom.map(n => n.blockTxs));
-  const gs = median(sampleFrom.map(n => n.gasUsed));
+  const bt = source ? (typeof source.blockTimeMs === 'number' ? source.blockTimeMs : source.blockTimeAvgMs) : undefined;
+  const bp = source ? source.blockPropagationMs : undefined;
+  const tx = source ? source.blockTxs : undefined;
+  const gs = source ? source.gasUsed : undefined;
 
   const label = `#${bestBlock}`;
   state.labels.push(label); if (state.labels.length > state.chartLen) state.labels.shift();

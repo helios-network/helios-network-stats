@@ -48,6 +48,22 @@ export class Registry {
     return undefined;
   }
 
+  getMostAdvancedConnected(): NodeEntry | undefined {
+    let best: NodeEntry | undefined;
+    let bestBlock = -Infinity;
+    let bestUpdated = -Infinity;
+    for (const n of this.nodes.values()) {
+      const s = n.snapshot;
+      if (!s.connected) continue;
+      const lb = typeof s.latestBlock === 'number' ? s.latestBlock : -Infinity;
+      const lu = typeof s.lastUpdated === 'number' ? s.lastUpdated : -Infinity;
+      if (lb > bestBlock || (lb === bestBlock && lu > bestUpdated)) {
+        best = n; bestBlock = lb; bestUpdated = lu;
+      }
+    }
+    return best || this.getFirstConnected();
+  }
+
   upsert(name: string, host: string, rpcPort = 8545, wsRpcPort = 8546) {
     const existing = this.nodes.get(name);
     if (existing) {

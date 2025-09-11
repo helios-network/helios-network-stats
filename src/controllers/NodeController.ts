@@ -113,7 +113,7 @@ export class NodeController {
         count = parsedCount;
       }
       
-      const entry = this.registry.getFirstConnected();
+      const entry = this.registry.getMostAdvancedConnected();
       if (!entry) {
         return res.status(503).json({ 
           ok: false, 
