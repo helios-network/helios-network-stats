@@ -10,6 +10,10 @@ export function fmtDur(ms) {
   return `${h}h ${m % 60}m`;
 }
 
+export function fmtMs(n) {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return '—';
+  return `${Math.round(n)} ms`;
+}
+
 export function fmtGwei(n) { return typeof n === 'number' && Number.isFinite(n) ? `${n.toFixed(1)} Gwei` : '—'; }
 export function fmtEth(n) { return typeof n === 'number' && Number.isFinite(n) ? `${n.toFixed(4)} ETH` : '—'; }
-

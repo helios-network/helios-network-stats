@@ -1,6 +1,6 @@
 import { state, pruneStaleNodes, isStale } from './state.js';
 import * as el from './elements.js';
-import { fmtNum, fmtDur, fmtGwei } from './format.js';
+import { fmtNum, fmtDur, fmtGwei, fmtMs } from './format.js';
 import { maybePushBlockSample } from './charts.js';
 
 function listHeadHtml() {
@@ -8,6 +8,7 @@ function listHeadHtml() {
     <div class="list-head">
       <div>Name</div>
       <div>Latest block</div>
+      <div>Latency</div>
       <div>Status</div>
     </div>
   `;
@@ -18,6 +19,7 @@ function listSkeletonHtml() {
     <div class="row">
       <div class="name"><span class="skeleton skeleton-line" style="width: 140px"></span></div>
       <div class="latest"><span class="skeleton skeleton-line" style="width: 80px"></span></div>
+      <div class="latency"><span class="skeleton skeleton-line" style="width: 56px"></span></div>
       <div class="status"><span class="skeleton skeleton-line" style="width: 72px"></span></div>
     </div>
   `).join('');
@@ -41,6 +43,7 @@ function rowHtml(n) {
     <div class="row" id="row-${n.name}">
       <div class="name">${n.name}</div>
       <div class="latest">${fmtNum(n.latestBlock)}</div>
+      <div class="latency">${fmtMs(n.latencyMs)}</div>
       <div class="status"><span class="pill ${pillClass}">${status}</span></div>
     </div>
   `;
@@ -122,4 +125,3 @@ export function updateStats(charts) {
     el.sGasL.textContent = fmtNum(mid);
   }
 }
-
