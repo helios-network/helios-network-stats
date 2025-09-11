@@ -167,11 +167,11 @@ export class NodeController {
         const ts = parseInt(b.timestamp, 16);
         const tsPrev = parseInt(prev.timestamp, 16);
         const dtMs = (Number.isFinite(ts) && Number.isFinite(tsPrev)) ? Math.max(0, (ts - tsPrev) * 1000) : null;
-        const propMs = Number.isFinite(ts) ? Math.max(0, Date.now() - ts * 1000) : null;
+        const cronCount = Array.isArray((b as any).cronTransactions) ? (b as any).cronTransactions.length : null;
         const txCount = Array.isArray(b.transactions) ? b.transactions.length : null;
         const gasUsed = parseInt(b.gasUsed, 16);
         bt.push(dtMs);
-        bp.push(propMs);
+        bp.push(Number.isFinite(cronCount as any) ? (cronCount as any) : null);
         tx.push(Number.isFinite(txCount as any) ? (txCount as any) : null);
         gs.push(Number.isFinite(gasUsed) ? gasUsed : null);
       }

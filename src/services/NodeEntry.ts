@@ -137,6 +137,13 @@ export class NodeEntry {
           this.snapshot.gasUsed = Number.isFinite(gasUsed) ? gasUsed : this.snapshot.gasUsed;
           const gasLimit = parseInt(latestBlockObj.gasLimit, 16);
           this.snapshot.gasLimit = Number.isFinite(gasLimit) ? gasLimit : this.snapshot.gasLimit;
+          const cron = Array.isArray(latestBlockObj.cronTransactions)
+            ? latestBlockObj.cronTransactions.filter((x: any) => typeof x === 'string')
+            : undefined;
+          if (cron) {
+            this.snapshot.cronTxs = cron;
+            this.snapshot.cronTxsCount = cron.length;
+          }
           if (tsSec) {
             this.snapshot.blockPropagationMs = Date.now() - tsSec * 1000;
             

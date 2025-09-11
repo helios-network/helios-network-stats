@@ -189,7 +189,7 @@ export function makeChart(canvas, formatLabel, opts = {}) {
 
 export function initCharts() {
   const chBT = makeChart(el.cBT, (v) => fmtDur(v), { color: '#2E5BFF', radius: 3 });
-  const chBP = makeChart(el.cBP, (v) => fmtDur(v), { color: '#64748B', radius: 3 });
+  const chBP = makeChart(el.cBP, (v) => fmtNum(v), { color: '#64748B', radius: 3 });
   const chTX = makeChart(el.cTX, (v) => fmtNum(v), { color: '#16A34A', radius: 3 });
   const chGS = makeChart(el.cGS, (v) => fmtNum(v), { color: '#EF4444', radius: 3 });
   return { chBT, chBP, chTX, chGS };
@@ -228,7 +228,7 @@ export function maybePushBlockSample(charts, bestBlock) {
   }
 
   const bt = source ? (typeof source.blockTimeMs === 'number' ? source.blockTimeMs : source.blockTimeAvgMs) : undefined;
-  const bp = source ? source.blockPropagationMs : undefined;
+  const bp = source ? (typeof source.cronTxsCount === 'number' ? source.cronTxsCount : (Array.isArray(source.cronTxs) ? source.cronTxs.length : undefined)) : undefined;
   const tx = source ? source.blockTxs : undefined;
   const gs = source ? source.gasUsed : undefined;
 
@@ -241,7 +241,7 @@ export function maybePushBlockSample(charts, bestBlock) {
   push(state.series.gs, gs);
 
   if (charts && charts.chBT) { charts.chBT.data.labels = state.labels; charts.chBT.data.datasets[0].data = state.series.bt; charts.chBT.update(); if (el.lBT) el.lBT.textContent = bt!==undefined ? fmtDur(bt) : '—'; }
-  if (charts && charts.chBP) { charts.chBP.data.labels = state.labels; charts.chBP.data.datasets[0].data = state.series.bp; charts.chBP.update(); if (el.lBP) el.lBP.textContent = bp!==undefined ? fmtDur(bp) : '—'; }
+  if (charts && charts.chBP) { charts.chBP.data.labels = state.labels; charts.chBP.data.datasets[0].data = state.series.bp; charts.chBP.update(); if (el.lBP) el.lBP.textContent = bp!==undefined ? fmtNum(bp) : '—'; }
   if (charts && charts.chTX) { charts.chTX.data.labels = state.labels; charts.chTX.data.datasets[0].data = state.series.tx; charts.chTX.update(); if (el.lTX) el.lTX.textContent = tx!==undefined ? fmtNum(tx) : '—'; }
   if (charts && charts.chGS) { charts.chGS.data.labels = state.labels; charts.chGS.data.datasets[0].data = state.series.gs; charts.chGS.update(); if (el.lGS) el.lGS.textContent = gs!==undefined ? fmtNum(gs) : '—'; }
 }

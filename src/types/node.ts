@@ -18,6 +18,8 @@ export interface NodeSnapshot {
   blockTimeAvgMs?: number;
   blockPropagationMs?: number;
   blockTxs?: number;
+  cronTxs?: string[];
+  cronTxsCount?: number;
   lastUpdated?: number;
   uptimeMs?: number;
 }
