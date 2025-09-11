@@ -39,11 +39,17 @@ function listEmptyHtml() {
 function rowHtml(n) {
   const status = n.connected ? 'Online' : 'Offline';
   const pillClass = n.connected ? 'ok' : 'err';
+  const lat = (() => {
+    const ms = n.latencyMs;
+    if (!(typeof ms === 'number' && Number.isFinite(ms))) return '—';
+    const cls = ms < 100 ? 'ok' : (ms < 500 ? 'warn' : 'err');
+    return `<span class="pill ${cls}">${fmtMs(ms)}</span>`;
+  })();
   return `
     <div class="row" id="row-${n.name}">
       <div class="name">${n.name}</div>
       <div class="latest">${fmtNum(n.latestBlock)}</div>
-      <div class="latency">${fmtMs(n.latencyMs)}</div>
+      <div class="latency">${lat}</div>
       <div class="status"><span class="pill ${pillClass}">${status}</span></div>
     </div>
   `;

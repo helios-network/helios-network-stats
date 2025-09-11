@@ -1034,6 +1034,12 @@ canvas {
   border-color: var(--success-border);
 }
 
+.pill.warn {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: var(--warning-border);
+}
+
 .pill.err {
   background: var(--error-bg);
   color: var(--error);
