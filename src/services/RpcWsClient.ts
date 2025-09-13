@@ -106,10 +106,11 @@ export class RpcWsClient implements RpcClient {
   }
 
   private scheduleReconnect(onOpen?: () => void, onClose?: (code: number, reason: string) => void, onError?: (err: any) => void) {
-    if (!this.shouldReconnect) return;
+    if (!this.shouldReconnect) {
+      return;
+    }
     this.clearReconnect();
     
-    console.debug(`Scheduling reconnect in ${this.currentReconnectDelay}ms`);
     this.reconnectTimer = setTimeout(() => this.connect(onOpen, onClose, onError), this.currentReconnectDelay);
     
     // Exponential backoff with jitter

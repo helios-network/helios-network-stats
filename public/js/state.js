@@ -11,8 +11,13 @@ export const state = {
 
 export function isStale(n) {
   if (!n) return false;
-  const ts = n.lastUpdated;
-  return !n.connected && typeof ts === 'number' && Number.isFinite(ts) && (Date.now() - ts > state.OFFLINE_PRUNE_MS);
+  if (n.connected) return false;
+  
+  const ts = typeof n.lastDisconnected === 'number' && Number.isFinite(n.lastDisconnected) 
+    ? n.lastDisconnected 
+    : n.lastUpdated;
+    
+  return typeof ts === 'number' && Number.isFinite(ts) && (Date.now() - ts > state.OFFLINE_PRUNE_MS);
 }
 
 export function pruneStaleNodes() {
@@ -21,6 +26,12 @@ export function pruneStaleNodes() {
     if (name === '_orderedNames') continue;
     
     if (isStale(n)) {
+      const ts = typeof n.lastDisconnected === 'number' && Number.isFinite(n.lastDisconnected) 
+        ? n.lastDisconnected 
+        : n.lastUpdated;
+      const ageMs = Date.now() - ts;
+      console.log(`Pruning stale node "${name}" (offline for ${Math.round(ageMs/1000)}s)`);
+      
       delete state.nodes[name];
       if (state.nodes._orderedNames && Array.isArray(state.nodes._orderedNames)) {
         const index = state.nodes._orderedNames.indexOf(name);

@@ -30,6 +30,7 @@ export class NodeEntry {
       rpcPort,
       wsRpcPort,
       connected: false,
+      lastDisconnected: Date.now(),
     };
   }
 
@@ -47,6 +48,7 @@ export class NodeEntry {
       this.snapshot.connected = true;
       this.snapshot.lastError = undefined;
       this.snapshot.lastUpdated = Date.now();
+      this.snapshot.lastDisconnected = undefined;
       this.connectedSince = Date.now();
       this.snapshot.uptimeMs = 0;
       onUpdate(this.snapshot);
@@ -56,13 +58,17 @@ export class NodeEntry {
       this.snapshot.connected = false;
       this.snapshot.lastError = reason && reason.length > 0 ? `WS close ${code}: ${reason}` : (this.snapshot.lastError || 'WS closed');
       this.snapshot.lastUpdated = Date.now();
+      
+      if (!this.snapshot.lastDisconnected) {
+        this.snapshot.lastDisconnected = Date.now();
+      }
+      
       onUpdate(this.snapshot);
       this.clearPoll();
     };
     const handleError = (err: any) => {
       const msg = err?.message || err?.code || err?.name || err;
       this.snapshot.lastError = String(msg);
-      this.snapshot.lastUpdated = Date.now();
       onUpdate(this.snapshot);
     };
     this.rpc.connect(handleOpen, handleClose, handleError);

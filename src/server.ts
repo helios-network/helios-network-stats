@@ -86,13 +86,25 @@ class HeliosNetworkServer {
       this.cleanupRunning = true;
       try {
         const now = Date.now();
-        let removedAny = false;
+        let removedAny = false;        
         for (const n of this.registry.list()) {
-          if (!n.connected && typeof n.lastUpdated === 'number' && Number.isFinite(n.lastUpdated)) {
-            const age = now - n.lastUpdated;
-            if (age > config.offlineUnsubscribeMs) {
-              const ok = this.registry.remove(n.name);
-              if (ok) removedAny = true;
+          if (!n.connected) {
+            if (typeof n.lastDisconnected === 'number' && Number.isFinite(n.lastDisconnected)) {
+              const age = now - n.lastDisconnected;
+              const ageSeconds = Math.round(age/1000);
+              const thresholdSeconds = Math.round(config.offlineUnsubscribeMs/1000);
+              if (age > config.offlineUnsubscribeMs) {
+                const ok = this.registry.remove(n.name);
+                if (ok) {
+                  removedAny = true;
+                } else {
+                  console.error(`*** Failed to remove node "${n.name}" ***`);
+                }
+              } else {
+                console.log(`Node "${n.name}" not old enough: ${ageSeconds}s < ${Math.round(config.offlineUnsubscribeMs/1000)}s`);
+              }
+            } else {
+              console.log(`Node "${n.name}": offline but no lastDisconnected timestamp`);
             }
           }
         }

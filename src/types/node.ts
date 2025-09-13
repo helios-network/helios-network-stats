@@ -21,6 +21,7 @@ export interface NodeSnapshot {
   cronTxs?: string[];
   cronTxsCount?: number;
   lastUpdated?: number;
+  lastDisconnected?: number;
   uptimeMs?: number;
 }
 
