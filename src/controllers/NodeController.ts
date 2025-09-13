@@ -113,11 +113,20 @@ export class NodeController {
         count = parsedCount;
       }
       
-      const entry = this.registry.getMostAdvancedConnected();
+      const entry = this.registry.getLowestLatencyConnected();
       if (!entry) {
         return res.status(503).json({ 
           ok: false, 
           error: 'No connected nodes available for history data',
+          labels: [], 
+          series: { bt: [], bp: [], tx: [], gs: [] } 
+        });
+      }
+      
+      if (!entry.rpc.isConnected()) {
+        return res.status(503).json({ 
+          ok: false, 
+          error: 'Selected node RPC client is not connected',
           labels: [], 
           series: { bt: [], bp: [], tx: [], gs: [] } 
         });
@@ -132,12 +141,25 @@ export class NodeController {
       const needed = [] as number[];
       for (let i = from; i <= to; i++) needed.push(i);
 
-      const blocks = await Promise.all(
-        needed.map(blockNum => 
-          entry.rpc.call<any>('eth_getBlockByNumber', ['0x' + blockNum.toString(16), false])
-            .catch(() => null)
-        )
-      );
+      const BATCH_SIZE = 10;
+      const blocks: (any | null)[] = new Array(needed.length).fill(null);
+      
+      for (let i = 0; i < needed.length; i += BATCH_SIZE) {
+        const batch = needed.slice(i, i + BATCH_SIZE);
+        try {
+          const batchResults = await Promise.all(
+            batch.map(blockNum => 
+              entry.rpc.call<any>('eth_getBlockByNumber', ['0x' + blockNum.toString(16), false])
+                .catch(() => null)
+            )
+          );
+          batchResults.forEach((result, batchIndex) => {
+            blocks[i + batchIndex] = result;
+          });
+        } catch (error) {
+          console.warn(`Batch RPC call failed for blocks ${batch[0]}-${batch[batch.length - 1]}:`, error);
+        }
+      }
 
       const labels: string[] = [];
       const bt: (number | null)[] = [];

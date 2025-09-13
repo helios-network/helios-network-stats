@@ -124,7 +124,7 @@ export class RpcWsClient implements RpcClient {
     this.reconnectTimer = undefined;
   }
 
-  call<T = any>(method: string, params: any[] = []): Promise<T> {
+  call<T = any>(method: string, params: any[] = [], timeoutMs: number = 15000): Promise<T> {
     if (!this.ws || this.ws.readyState !== this.ws.OPEN) {
       return Promise.reject(new Error('WS not connected'));
     }
@@ -132,15 +132,14 @@ export class RpcWsClient implements RpcClient {
     const payload = { jsonrpc: '2.0', id, method, params };
     
     return new Promise<T>((resolve, reject) => {
-      // Set up timeout for this request (30 seconds)
       const timeout = setTimeout(() => {
         const pendingItem = this.pending.get(id);
         if (pendingItem) {
           clearTimeout(pendingItem.timeout);
           this.pending.delete(id);
-          reject(new Error(`RPC request timeout for method: ${method}`));
+          reject(new Error(`RPC request timeout for method: ${method} (${timeoutMs}ms)`));
         }
-      }, 30000);
+      }, timeoutMs);
 
       const pendingItem: PendingRequest = {
         resolve,

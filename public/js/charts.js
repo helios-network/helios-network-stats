@@ -61,6 +61,9 @@ export function makeChart(canvas, formatLabel, opts = {}) {
     ctx.closePath();
   }
 
+  const existingTips = document.querySelectorAll('.chart-tip');
+  existingTips.forEach(tip => tip.remove());
+  
   const tip = document.createElement('div');
   tip.className = 'chart-tip';
   tip.style.display = 'none';
@@ -209,22 +212,34 @@ export function maybePushBlockSample(charts, bestBlock) {
   if (bestBlock === state.lastBestBlock) return;
   state.lastBestBlock = bestBlock;
 
-  const vals = Object.values(state.nodes);
+  const vals = Object.entries(state.nodes)
+    .filter(([key, node]) => key !== '_orderedNames' && node && typeof node === 'object')
+    .map(([, node]) => node);
+    
   let source = undefined;
+  let bestLatency = Number.POSITIVE_INFINITY;
   let bestUpdated = -Infinity;
+  
   for (const n of vals) {
-    if (!n || typeof n.latestBlock !== 'number') continue;
+    if (!n || !n.connected || typeof n.latestBlock !== 'number') continue;
     if (n.latestBlock !== bestBlock) continue;
+    const latency = (typeof n.latencyMs === 'number' && n.latencyMs >= 0) ? n.latencyMs : Number.POSITIVE_INFINITY;
     const lu = typeof n.lastUpdated === 'number' ? n.lastUpdated : -Infinity;
-    if (!source || lu > bestUpdated) { source = n; bestUpdated = lu; }
+    if (latency < bestLatency || (latency === bestLatency && lu > bestUpdated)) { 
+      source = n; bestLatency = latency; bestUpdated = lu; 
+    }
   }
+  
   if (!source) {
-    let best = -Infinity; bestUpdated = -Infinity;
+    let best = -Infinity; 
+    bestLatency = Number.POSITIVE_INFINITY;
+    bestUpdated = -Infinity;
     for (const n of vals) {
-      if (!n || typeof n.latestBlock !== 'number') continue;
+      if (!n || !n.connected || typeof n.latestBlock !== 'number') continue;
+      const latency = (typeof n.latencyMs === 'number' && n.latencyMs >= 0) ? n.latencyMs : Number.POSITIVE_INFINITY;
       const lu = typeof n.lastUpdated === 'number' ? n.lastUpdated : -Infinity;
-      if (n.latestBlock > best || (n.latestBlock === best && lu > bestUpdated)) {
-        source = n; best = n.latestBlock; bestUpdated = lu;
+      if (n.latestBlock > best || (n.latestBlock === best && (latency < bestLatency || (latency === bestLatency && lu > bestUpdated)))) {
+        source = n; best = n.latestBlock; bestLatency = latency; bestUpdated = lu;
       }
     }
   }

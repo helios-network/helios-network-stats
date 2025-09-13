@@ -38,7 +38,22 @@ export class Registry {
   }
 
   list(): NodeSnapshot[] {
-    return Array.from(this.nodes.values()).map((n) => n.snapshot);
+    const snapshots = Array.from(this.nodes.values()).map((n) => n.snapshot);
+    snapshots.sort((a, b) => {
+      const ac = a.connected ? 0 : 1;
+      const bc = b.connected ? 0 : 1;
+      if (ac !== bc) return ac - bc;
+      
+      const al = Number.isFinite(a.latencyMs as any) && (a.latencyMs as number) >= 0 ? (a.latencyMs as number) : Number.POSITIVE_INFINITY;
+      const bl = Number.isFinite(b.latencyMs as any) && (b.latencyMs as number) >= 0 ? (b.latencyMs as number) : Number.POSITIVE_INFINITY;
+      if (al !== bl) return al - bl;
+      
+      const au = Number.isFinite(a.lastUpdated as any) ? (a.lastUpdated as number) : -Infinity;
+      const bu = Number.isFinite(b.lastUpdated as any) ? (b.lastUpdated as number) : -Infinity;
+      if (au !== bu) return bu - au;
+      return a.name.localeCompare(b.name);
+    });
+    return snapshots;
   }
 
   getFirstConnected(): NodeEntry | undefined {
@@ -59,6 +74,24 @@ export class Registry {
       const lu = typeof s.lastUpdated === 'number' ? s.lastUpdated : -Infinity;
       if (lb > bestBlock || (lb === bestBlock && lu > bestUpdated)) {
         best = n; bestBlock = lb; bestUpdated = lu;
+      }
+    }
+    return best || this.getFirstConnected();
+  }
+
+  getLowestLatencyConnected(): NodeEntry | undefined {
+    let best: NodeEntry | undefined;
+    let bestLatency = Number.POSITIVE_INFINITY;
+    let bestUpdated = -Infinity;
+    for (const n of this.nodes.values()) {
+      const s = n.snapshot;
+      if (!s.connected) continue;
+      const lat = Number.isFinite(s.latencyMs as any) && (s.latencyMs as number) >= 0 ? (s.latencyMs as number) : Number.POSITIVE_INFINITY;
+      const lu = Number.isFinite(s.lastUpdated as any) ? (s.lastUpdated as number) : -Infinity;
+      if (lat < bestLatency || (lat === bestLatency && lu > bestUpdated)) {
+        best = n;
+        bestLatency = lat;
+        bestUpdated = lu;
       }
     }
     return best || this.getFirstConnected();

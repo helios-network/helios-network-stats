@@ -15,7 +15,12 @@ export async function fetchSnapshot() {
   const res = await fetch('/nodes');
   const data = await res.json();
   const next = {};
-  (data.nodes || []).forEach((n) => (next[n.name] = n));
+  const orderedNames = [];
+  (data.nodes || []).forEach((n) => {
+    next[n.name] = n;
+    orderedNames.push(n.name);
+  });
+  next._orderedNames = orderedNames;
   return next;
 }
 

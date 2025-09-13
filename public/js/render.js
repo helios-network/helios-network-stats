@@ -64,7 +64,19 @@ export function render(charts) {
   } else {
     el.nodesEl.classList.remove('is-loading');
     el.nodesEl.removeAttribute('aria-busy');
-    const arr = Object.values(state.nodes).sort((a, b) => a.name.localeCompare(b.name));
+    
+    let arr;
+    if (state.nodes._orderedNames && Array.isArray(state.nodes._orderedNames)) {
+      arr = state.nodes._orderedNames
+        .map(name => state.nodes[name])
+        .filter(n => n && n.name && typeof n.name === 'string');
+    } else {
+      arr = Object.entries(state.nodes)
+        .filter(([key, node]) => key !== '_orderedNames' && node && node.name && typeof node.name === 'string')
+        .map(([, node]) => node)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
     el.nodesEl.innerHTML = arr.length ? (listHeadHtml() + arr.map(rowHtml).join('')) : listEmptyHtml();
   }
   updateStats(charts);
@@ -73,10 +85,21 @@ export function render(charts) {
 export function renderOne(name, charts) {
   const n = state.nodes[name];
   if (!n || isStale(n)) {
-    if (n && isStale(n)) delete state.nodes[name];
+    if (n && isStale(n)) {
+      delete state.nodes[name];
+      
+      if (state.nodes._orderedNames && Array.isArray(state.nodes._orderedNames)) {
+        const index = state.nodes._orderedNames.indexOf(name);
+        if (index !== -1) {
+          state.nodes._orderedNames.splice(index, 1);
+        }
+      }
+    }
     const staleEl = document.getElementById(`row-${name}`);
     if (staleEl && staleEl.parentElement) staleEl.parentElement.removeChild(staleEl);
-    if (Object.keys(state.nodes).length === 0) { render(charts); return; }
+    
+    const nodeCount = Object.keys(state.nodes).filter(key => key !== '_orderedNames').length;
+    if (nodeCount === 0) { render(charts); return; }
     updateStats(charts);
     return;
   }
@@ -100,15 +123,22 @@ export function updateStats(charts) {
     }
   }
 
-  const vals = Object.values(state.nodes);
+  const vals = Object.entries(state.nodes)
+    .filter(([key, node]) => key !== '_orderedNames' && node && typeof node === 'object')
+    .map(([, node]) => node);
+    
   if (el.sNodes) {
     const total = vals.length;
     const active = vals.filter(n => n && n.connected).length;
     el.sNodes.textContent = `${active}/${total}`;
   }
   if (el.sBest) {
-    const best = Math.max(...vals.map(n => (typeof n.latestBlock === 'number' ? n.latestBlock : -Infinity)));
-    if (Number.isFinite(best) && best > -Infinity) {
+    const blockNumbers = vals
+      .map(n => (typeof n.latestBlock === 'number' && Number.isFinite(n.latestBlock) ? n.latestBlock : -Infinity))
+      .filter(num => num > -Infinity);
+    
+    if (blockNumbers.length > 0) {
+      const best = Math.max(...blockNumbers);
       el.sBest.textContent = fmtNum(best);
       maybePushBlockSample(charts, best);
     } else {

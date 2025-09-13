@@ -1,6 +1,6 @@
 import { INCLUDE_TOOLS } from './env.js';
 import * as el from './elements.js';
-import { state, pruneStaleNodes } from './state.js';
+import { state, pruneStaleNodes, hasConnectedNode } from './state.js';
 import { initTheme, toggleTheme } from './theme.js';
 import { connectWebSocket } from './ws.js';
 import { fetchSnapshot } from './api.js';
@@ -36,7 +36,12 @@ connectWebSocket({
   },
   onSnapshot(nodesArr) {
     state.nodes = {};
-    (nodesArr || []).forEach((n) => (state.nodes[n.name] = n));
+    const orderedNames = [];
+    (nodesArr || []).forEach((n) => {
+      state.nodes[n.name] = n;
+      orderedNames.push(n.name);
+    });
+    state.nodes._orderedNames = orderedNames;
     state.nodesLoading = false;
     pruneStaleNodes();
     render(charts);
@@ -46,7 +51,6 @@ connectWebSocket({
     if (!node || !node.name) return;
     state.nodes[node.name] = node;
     renderOne(node.name, charts);
-    maybeLoadHistory(charts);
   },
 });
 
@@ -65,4 +69,10 @@ connectWebSocket({
 
 // Periodically prune stale nodes and re-render
 setInterval(() => { if (pruneStaleNodes()) render(charts); }, 30 * 1000);
+
+setInterval(() => { 
+  if (!state.historyState.loaded && !state.historyState.loading && hasConnectedNode()) {
+    maybeLoadHistory(charts);
+  }
+}, 5 * 1000);
 

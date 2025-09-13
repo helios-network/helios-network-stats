@@ -23,9 +23,14 @@ export function setHistoryLoading(on) {
 export function resetHistoryState() {
   state.historyState.loaded = false;
   state.historyState.loading = false;
+  state.historyState.lastLoadTime = 0;
   if (state.historyState.retryTimer) {
     clearTimeout(state.historyState.retryTimer);
     state.historyState.retryTimer = null;
+  }
+  if (historyLoadThrottle) {
+    clearTimeout(historyLoadThrottle);
+    historyLoadThrottle = null;
   }
 }
 
@@ -41,7 +46,14 @@ export async function loadHistory(charts) {
   if (state.historyState.loading || state.historyState.loaded) return;
   state.historyState.loading = true;
   try {
-    const res = await fetch('/history?count=' + encodeURIComponent(state.chartLen));
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    const res = await fetch('/history?count=' + encodeURIComponent(state.chartLen), {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
       throw new Error(errorData.error || `HTTP ${res.status}`);
@@ -91,21 +103,60 @@ export async function loadHistory(charts) {
     if (charts && charts.chGS) { charts.chGS.data.labels = state.labels; charts.chGS.data.datasets[0].data = state.series.gs; charts.chGS.update(); if (el.lGS) { const v = state.series.gs[state.series.gs.length-1]; el.lGS.textContent = v!=null ? fmtNum(v) : '—'; } }
 
     state.historyState.loaded = true;
+    state.historyState.lastLoadTime = Date.now();
     setHistoryLoading(false);
   } catch (e) {
     console.warn('Failed to load history:', e);
     setHistoryLoading(false);
-    scheduleHistoryRetry(hasConnectedNode() ? 2000 : 3000, () => maybeLoadHistory(charts));
+    
+    let retryDelay = 2000;
+    if (e.name === 'AbortError') {
+      retryDelay = 5000; // Longer delay for timeouts
+    } else if (e.message && e.message.includes('503')) {
+      retryDelay = 1000; // Quick retry for node unavailable (might be switching nodes)
+    } else if (!hasConnectedNode()) {
+      retryDelay = 3000; // Longer delay when no nodes connected
+    }
+    
+    if (e.message && (e.message.includes('503') || e.message.includes('not connected'))) {
+      state.historyState.loaded = false;
+    }
+    
+    scheduleHistoryRetry(retryDelay, () => maybeLoadHistory(charts));
   } finally {
     state.historyState.loading = false;
   }
 }
 
+let historyLoadThrottle = null;
+const HISTORY_THROTTLE_MS = 1000;
+
 export function maybeLoadHistory(charts) {
-  if (state.historyState.loaded || state.historyState.loading) return;
+  if (state.historyState.loading) return;
   if (!hasConnectedNode()) {
     setHistoryLoading(false);
     return;
   }
-  loadHistory(charts);
+  
+  const now = Date.now();
+  const cacheAge = now - state.historyState.lastLoadTime;
+  if (state.historyState.loaded && cacheAge < state.historyState.cacheValidMs) {
+    return; // Use cached data
+  }
+  
+  if (historyLoadThrottle) {
+    clearTimeout(historyLoadThrottle);
+  }
+  
+  historyLoadThrottle = setTimeout(() => {
+    historyLoadThrottle = null;
+    if (!state.historyState.loading && hasConnectedNode()) {
+      if (cacheAge >= state.historyState.cacheValidMs) {
+        state.historyState.loaded = false;
+      }
+      if (!state.historyState.loaded) {
+        loadHistory(charts);
+      }
+    }
+  }, HISTORY_THROTTLE_MS);
 }
