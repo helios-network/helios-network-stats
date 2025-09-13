@@ -165,7 +165,10 @@ export function updateStats(charts) {
     }
   }
   if (el.sAvgT) {
-    const ts = vals.map(n => n.blockTimeAvgMs).filter(x => typeof x === 'number' && Number.isFinite(x));
+    const ts = vals
+      .filter(n => n && n.connected)
+      .map(n => n.blockTimeAvgMs)
+      .filter(x => typeof x === 'number' && Number.isFinite(x));
     const avg = ts.length ? (ts.reduce((a,b)=>a+b,0) / ts.length) : undefined;
     el.sAvgT.textContent = fmtDur(avg);
   }

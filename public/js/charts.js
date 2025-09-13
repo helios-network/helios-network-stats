@@ -250,7 +250,7 @@ export function maybePushBlockSample(charts, bestBlock) {
     }
   }
 
-  const bt = source ? (typeof source.blockTimeMs === 'number' ? source.blockTimeMs : source.blockTimeAvgMs) : undefined;
+  const bt = source ? (typeof source.blockTimeAvgMs === 'number' ? source.blockTimeAvgMs : source.blockTimeMs) : undefined;
   const bp = source ? (typeof source.cronTxsCount === 'number' ? source.cronTxsCount : (Array.isArray(source.cronTxs) ? source.cronTxs.length : undefined)) : undefined;
   const tx = source ? source.blockTxs : undefined;
   const gs = source ? source.gasUsed : undefined;

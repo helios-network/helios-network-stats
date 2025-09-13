@@ -136,7 +136,7 @@ export class NodeEntry {
           .call<any>('eth_getBlockByNumber', [toHexBlock(latestBlock), false])
           .catch(() => undefined);
         if (latestBlockObj) {
-          const tsSec = parseInt(latestBlockObj.timestamp, 16) || undefined;
+          const tsSec = parseInt(latestBlockObj.timestamp, 16);
           const txCount = Array.isArray(latestBlockObj.transactions) ? latestBlockObj.transactions.length : undefined;
           this.snapshot.blockTxs = txCount;
           const gasUsed = parseInt(latestBlockObj.gasUsed, 16);
@@ -150,10 +150,10 @@ export class NodeEntry {
             this.snapshot.cronTxs = cron;
             this.snapshot.cronTxsCount = cron.length;
           }
-          if (tsSec) {
+          if (Number.isFinite(tsSec)) {
             this.snapshot.blockPropagationMs = Date.now() - tsSec * 1000;
             
-            if (this.lastBlockTimestampSec && tsSec > this.lastBlockTimestampSec) {
+            if (typeof this.lastBlockTimestampSec === 'number' && tsSec > this.lastBlockTimestampSec) {
               const dt = (tsSec - this.lastBlockTimestampSec) * 1000;
               this.snapshot.blockTimeMs = dt;
               this.timesWindow.push(dt);
