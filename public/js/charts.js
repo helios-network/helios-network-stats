@@ -61,13 +61,16 @@ export function makeChart(canvas, formatLabel, opts = {}) {
     ctx.closePath();
   }
 
-  const existingTips = document.querySelectorAll('.chart-tip');
-  existingTips.forEach(tip => tip.remove());
-  
   const tip = document.createElement('div');
   tip.className = 'chart-tip';
   tip.style.display = 'none';
   document.body.appendChild(tip);
+  
+  const cleanup = () => {
+    if (tip && tip.parentNode) {
+      tip.parentNode.removeChild(tip);
+    }
+  };
 
   function showTip(html, px, py) {
     tip.innerHTML = html;
@@ -188,6 +191,9 @@ export function makeChart(canvas, formatLabel, opts = {}) {
       stateLocal.data = (chart.data.datasets && chart.data.datasets[0] && chart.data.datasets[0].data) || [];
       draw();
     },
+    destroy() {
+      cleanup();
+    }
   };
   return chart;
 }
@@ -258,7 +264,7 @@ export function maybePushBlockSample(charts, bestBlock) {
   push(state.series.gs, gs);
 
   if (charts && charts.chBT) { charts.chBT.data.labels = state.labels; charts.chBT.data.datasets[0].data = state.series.bt; charts.chBT.update(); if (el.lBT) el.lBT.textContent = bt!==undefined ? fmtDur(bt) : '—'; }
-  if (charts && charts.chBP) { charts.chBP.data.labels = state.labels; charts.chBP.data.datasets[0].data = state.series.bp; charts.chBP.update(); if (el.lBP) el.lBP.textContent = bp!==undefined ? fmtNum(bp) : '—'; }
-  if (charts && charts.chTX) { charts.chTX.data.labels = state.labels; charts.chTX.data.datasets[0].data = state.series.tx; charts.chTX.update(); if (el.lTX) el.lTX.textContent = tx!==undefined ? fmtNum(tx) : '—'; }
-  if (charts && charts.chGS) { charts.chGS.data.labels = state.labels; charts.chGS.data.datasets[0].data = state.series.gs; charts.chGS.update(); if (el.lGS) el.lGS.textContent = gs!==undefined ? fmtNum(gs) : '—'; }
+  if (charts && charts.chBP) { charts.chBP.data.labels = state.labels; charts.chBP.data.datasets[0].data = state.series.bp; charts.chBP.update(); if (el.lBP) el.lBP.textContent = bp!==undefined ? `${fmtNum(bp)} TXs` : '—'; }
+  if (charts && charts.chTX) { charts.chTX.data.labels = state.labels; charts.chTX.data.datasets[0].data = state.series.tx; charts.chTX.update(); if (el.lTX) el.lTX.textContent = tx!==undefined ? `${fmtNum(tx)} TXs` : '—'; }
+  if (charts && charts.chGS) { charts.chGS.data.labels = state.labels; charts.chGS.data.datasets[0].data = state.series.gs; charts.chGS.update(); if (el.lGS) el.lGS.textContent = gs!==undefined ? `${fmtNum(gs)} gas` : '—'; }
 }

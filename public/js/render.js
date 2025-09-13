@@ -158,6 +158,6 @@ export function updateStats(charts) {
   if (el.sGasL) {
     const ls = vals.map(n => n.gasLimit).filter(x => typeof x === 'number' && Number.isFinite(x)).sort((a,b)=>a-b);
     const mid = ls.length ? (ls.length % 2 ? ls[(ls.length-1)/2] : (ls[ls.length/2-1] + ls[ls.length/2]) / 2) : undefined;
-    el.sGasL.textContent = fmtNum(mid);
+    el.sGasL.textContent = mid !== undefined ? `${fmtNum(mid)} gas` : '—';
   }
 }
