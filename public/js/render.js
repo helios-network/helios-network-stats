@@ -40,10 +40,29 @@ function rowHtml(n) {
   const status = n.connected ? 'Online' : 'Offline';
   const pillClass = n.connected ? 'ok' : 'err';
   const lat = (() => {
-    const ms = n.latencyMs;
-    if (!(typeof ms === 'number' && Number.isFinite(ms))) return '—';
-    const cls = ms < 100 ? 'ok' : (ms < 500 ? 'warn' : 'err');
-    return `<span class="pill ${cls}">${fmtMs(ms)}</span>`;
+    if (n.connected) {
+      const ms = n.latencyMs;
+      if (!(typeof ms === 'number' && Number.isFinite(ms))) return '—';
+      const cls = ms < 100 ? 'ok' : (ms < 500 ? 'warn' : 'err');
+      return `<span class="pill ${cls}">${fmtMs(ms)}</span>`;
+    } else {
+      const disconnectedTime = typeof n.lastDisconnected === 'number' && Number.isFinite(n.lastDisconnected) 
+        ? n.lastDisconnected 
+        : n.lastUpdated;
+      
+      if (typeof disconnectedTime === 'number' && Number.isFinite(disconnectedTime)) {
+        const ageMs = Date.now() - disconnectedTime;
+        const timeUntilDeletionMs = Math.max(0, state.OFFLINE_PRUNE_MS - ageMs);
+        
+        if (timeUntilDeletionMs <= 0) {
+          return `<span class="pill err">Deleting...</span>`;
+        } else {
+          const timeUntilDeletionStr = fmtDur(timeUntilDeletionMs);
+          return `<span class="pill warn">-${timeUntilDeletionStr}</span>`;
+        }
+      }
+      return '—';
+    }
   })();
   return `
     <div class="row" id="row-${n.name}">
