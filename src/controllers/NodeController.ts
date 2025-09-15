@@ -18,7 +18,12 @@ export class NodeController {
         return res.status(400).json({ error: 'Request body is required and must be valid JSON' });
       }
 
-      const { name, host, rpcPort = 8545, wsRpcPort = 8546, wsUrl } = req.body;
+      const { name, port = 8545 } = req.body;
+      // exemple of body
+      // {
+      //   "name": "helios-unity",
+      //   "port": 8545,
+      // }
 
       // Validate name (required)
       const nameValidation = validateNodeName(name);
@@ -27,39 +32,31 @@ export class NodeController {
       }
 
       // Validate ports
-      const rpcPortValidation = validatePort(rpcPort);
+      const rpcPortValidation = validatePort(port);
       if (!rpcPortValidation.isValid) {
         return res.status(400).json({ error: `RPC port invalid: ${rpcPortValidation.error}` });
       }
 
-      const wsPortValidation = validatePort(wsRpcPort);
-      if (!wsPortValidation.isValid) {
-        return res.status(400).json({ error: `WebSocket port invalid: ${wsPortValidation.error}` });
-      }
-
-      // Validate connection parameters (either host or wsUrl required)
-      if (!host && !wsUrl) {
-        return res.status(400).json({ error: 'Either host or wsUrl is required' });
-      }
-
-      let finalHost: string;
+      let finalHost: string | undefined = undefined;
       
-      if (wsUrl) {
-        const wsValidation = validateWebSocketUrl(wsUrl);
-        if (!wsValidation.isValid) {
-          return res.status(400).json({ error: `WebSocket URL invalid: ${wsValidation.error}` });
-        }
-        finalHost = wsUrl;
+      if (req.ip == undefined) {
+        const ip_raw = req.headers['x-forwarded-for'] ||
+          req.socket.remoteAddress ||
+          null; //->:ffff:192.168.0.101
+          if (typeof ip_raw === 'string') {
+            const ip = ip_raw?.replace(/^.*:/, '')//->192.168.0.101
+            finalHost = ip;
+          }
       } else {
-        const hostValidation = validateHost(host);
-        if (!hostValidation.isValid) {
-          return res.status(400).json({ error: `Host invalid: ${hostValidation.error}` });
-        }
-        finalHost = host!;
+        finalHost = req.ip;
+      }
+
+      if (finalHost == undefined) {
+        return res.status(400).json({ error: 'IP address not found' });
       }
 
       // All validations passed - proceed with registration
-      this.registry.upsert(name, finalHost, Number(rpcPort), Number(wsRpcPort));
+      this.registry.upsert(name, finalHost, Number(port), undefined);
       return res.json({ ok: true });
 
     } catch (error) {
