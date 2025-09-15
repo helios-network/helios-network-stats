@@ -33,10 +33,7 @@ export interface PersistedNode {
 
 export interface SubscribeBody {
   name: string;
-  host?: string;
-  rpcPort?: number;
-  wsRpcPort?: number;
-  wsUrl?: string;
+  port?: number;
 }
 
 export type NodeId = string;
