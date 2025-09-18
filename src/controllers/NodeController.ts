@@ -51,6 +51,10 @@ export class NodeController {
         finalHost = req.ip;
       }
 
+      if (finalHost == "::1") {
+        finalHost = "127.0.0.1";
+      }
+
       if (finalHost == undefined) {
         return res.status(400).json({ error: 'IP address not found' });
       }
