@@ -41,22 +41,10 @@ export class NodeController {
       
       let forwardedIpsStr = req.header('x-forwarded-for');
 
-      console.log("forwardedIpsStr", forwardedIpsStr);
-
-      if (req.ip == undefined) {
-
-        const ip_raw = req.headers['x-forwarded-for'] ||
-          req.socket.remoteAddress ||
-          null; //->:ffff:192.168.0.101
-          if (typeof ip_raw === 'string') {
-            const ip = ip_raw?.replace(/^.*:/, '')//->192.168.0.101
-            finalHost = ip;
-          }
-      } else {
-        finalHost = req.ip;
+      if (forwardedIpsStr) {
+        const forwardedIps = forwardedIpsStr.split(',').map(ip => ip.trim());
+        finalHost = forwardedIps[0];
       }
-
-      console.log("finalHost", finalHost);
 
       if (finalHost == "::1") {
         finalHost = "127.0.0.1";
