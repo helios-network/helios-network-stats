@@ -40,6 +40,11 @@ export class NodeController {
       let finalHost: string | undefined = undefined;
       
       if (req.ip == undefined) {
+
+        let forwardedIpsStr = req.header('x-forwarded-for');
+
+        console.log("forwardedIpsStr", forwardedIpsStr);
+
         const ip_raw = req.headers['x-forwarded-for'] ||
           req.socket.remoteAddress ||
           null; //->:ffff:192.168.0.101
