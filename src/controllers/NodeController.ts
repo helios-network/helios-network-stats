@@ -51,6 +51,8 @@ export class NodeController {
         finalHost = req.ip;
       }
 
+      console.log("finalHost", finalHost);
+
       if (finalHost == "::1") {
         finalHost = "127.0.0.1";
       }
