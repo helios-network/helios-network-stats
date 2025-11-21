@@ -8,6 +8,7 @@ function listHeadHtml() {
     <div class="list-head">
       <div>Name</div>
       <div>Latest block</div>
+      <div>Peers</div>
       <div>Latency</div>
       <div>Status</div>
     </div>
@@ -19,6 +20,7 @@ function listSkeletonHtml() {
     <div class="row">
       <div class="name"><span class="skeleton skeleton-line" style="width: 140px"></span></div>
       <div class="latest"><span class="skeleton skeleton-line" style="width: 80px"></span></div>
+      <div class="peers"><span class="skeleton skeleton-line" style="width: 40px"></span></div>
       <div class="latency"><span class="skeleton skeleton-line" style="width: 56px"></span></div>
       <div class="status"><span class="skeleton skeleton-line" style="width: 72px"></span></div>
     </div>
@@ -39,6 +41,13 @@ function listEmptyHtml() {
 function rowHtml(n) {
   const status = n.connected ? 'Online' : 'Offline';
   const pillClass = n.connected ? 'ok' : 'err';
+  const peers = (() => {
+    if (!n.connected) return '—';
+    const count = n.peerCount;
+    if (!(typeof count === 'number' && Number.isFinite(count))) return '—';
+    const cls = count > 0 ? 'ok' : 'warn';
+    return `<span class="pill ${cls}">${count}</span>`;
+  })();
   const lat = (() => {
     if (n.connected) {
       const ms = n.latencyMs;
@@ -68,6 +77,7 @@ function rowHtml(n) {
     <div class="row" id="row-${n.name}">
       <div class="name">${n.name}</div>
       <div class="latest">${fmtNum(n.latestBlock)}</div>
+      <div class="peers">${peers}</div>
       <div class="latency">${lat}</div>
       <div class="status"><span class="pill ${pillClass}">${status}</span></div>
     </div>

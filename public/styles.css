@@ -971,7 +971,7 @@ canvas {
 .node-list .list-head,
 .node-list .row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 0.75fr 1fr 1fr;
   gap: 1rem;
   align-items: center;
   padding: 1rem 1.5rem;
@@ -1006,6 +1006,11 @@ canvas {
 }
 
 .node-list .latest {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: var(--text-secondary);
+}
+
+.node-list .peers {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   color: var(--text-secondary);
 }
@@ -1123,6 +1128,7 @@ footer small {
   }
   
   .node-list .latest,
+  .node-list .peers,
   .node-list .latency,
   .node-list .status {
     display: inline-block;
